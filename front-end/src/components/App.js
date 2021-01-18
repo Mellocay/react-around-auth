@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-  Route, Switch, Redirect, BrowserRouter,
-} from 'react-router-dom';
+import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import Header from './Header.js';
 import Main from './Main.js';
 import PopupWithForm from './PopupWithForm';
@@ -15,7 +13,8 @@ import Register from './Register.js';
 import Login from './Login.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
 import ProtectedRoute from './ProtectedRoute.js';
-import ResultPopup from './PopupRegisterResult.js';
+import ResultPopup from './PopupResult.js';
+import * as auth from '../utils/authorization.js';
 
 function App() {
 
@@ -55,6 +54,7 @@ function App() {
   const [isDeletePopupOpen, setIsDeletePopupOpen] = React.useState(false);
   const [isImagePopupOpen, setIsImagePopupOpen] = React.useState(false);
   const [isResultPopupOpen, setIsResultPopupOpen] = React.useState(false);
+  const [isSuccessful, setIsSuccessful] = React.useState(false);
 
   // handler functions for Popups
   function handleEditAvatarClick(evt) {
@@ -145,58 +145,142 @@ function App() {
       .catch(err => console.log(err));
   }
 
-  // app JSX
-  return (
-    <CurrentUserContext.Provider value={currentUser}>
-      <div className="page">
-        <BrowserRouter>
+  // states for Registration and Login
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [message, setMessage] = React.useState('');
+
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [token, setToken] = React.useState(false);
+  // let jwt = localStorage.getItem('jwt');
+
+  const history = useHistory();
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setMessage('');
+  }
+
+  React.useEffect(() => {
+    let jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      auth.getContent(jwt)
+        .then((res) => {
+          setEmail(res.email);
+          setLoggedIn(true);
+          history.push('/');
+        })
+    }
+  }, [history]);
+
+  function handleRegistration(email, password) {
+    auth.register(email, password)
+      .then((res) => {
+        if (!res || res.err) {
+          setIsSuccessful(false);
+          setIsResultPopupOpen(true);
+        } else {
+          setIsSuccessful(true);
+          setIsResultPopupOpen(true);
+          history.push('/signin');
+        }
+      })
+      .then(resetForm)
+      .catch((err) => {
+        console.log(err);
+        setIsSuccessful(false);
+        setIsResultPopupOpen(true);
+      });
+  }
+
+  function handleCheckToken() {
+    const jwt = localStorage.getItem('jwt')
+    auth.getContent(jwt)
+      .then((res) => {
+        if (res.error) {
+          console.log(res.err);
+        }
+        setCurrentUser(res);
+        setEmail(res.email);
+        setLoggedIn(true);
+        setToken(jwt);
+        })
+    }
+
+    function handleLogin(email, password) {
+      auth.authorize(email, password)
+        .then((res) => {
+          if (!res) {
+            console.log(res.error);
+            setIsSuccessful(false);
+            setIsResultPopupOpen(true);
+          }
+          if (res.error) {
+            console.log(res.error);
+            setIsSuccessful(false);
+            setIsResultPopupOpen(true);
+          }
+          handleCheckToken();
+        })
+        .catch((err) => {
+          console.log(err);
+          setIsSuccessful(false);
+          setIsResultPopupOpen(true);
+        })
+    };
+
+    // app JSX
+    return (
+      <CurrentUserContext.Provider value={currentUser}>
+        <div className="page">
           <Switch>
-            <ProtectedRoute exact path="/" component={Main} />
-            <Route exact path="/register">
-              <Register />
+            <ProtectedRoute exact path="/"
+              component={Main}
+              email={email}
+              loggedIn={loggedIn}
+              handleEditAvatarClick={handleEditAvatarClick}
+              handleEditProfileClick={handleEditProfileClick}
+              handleAddCardClick={handleAddCardClick}
+              // handleDeleteCardClick={handleDeleteCardClick}
+              handleDeleteCard={(card) => { handleDeleteCard(card) }}
+              handleCardClick={(link, name) => { handleCardClick(link, name) }}
+              cards={cards}
+              handleCardLikeStatus={(card) => handleCardLikeStatus(card)} />
+            <Route exact path="/signup">
+              <Header link="/signin" linkName="Sign in" />
+              <Register handleRegistration={handleRegistration} />
             </Route>
-            <Route exact path="/login">
-              <Login />
+            <Route exact path="/signin">
+              <Header link="/signup" linkName="Sign up" />
+              <Login handleLogin={handleLogin} />
             </Route>
             <Route path="/*">
-              <Redirect to="/login" />
+              <Redirect to="/signin" />
             </Route>
           </Switch>
-        </BrowserRouter>
-        <Header />
-        <Main
-          // Prop values passed to Main.js
-          handleEditAvatarClick={handleEditAvatarClick}
-          handleEditProfileClick={handleEditProfileClick}
-          handleAddCardClick={handleAddCardClick}
-          // handleDeleteCardClick={handleDeleteCardClick}
-          handleDeleteCard={(card) => { handleDeleteCard(card) }}
-          handleCardClick={(link, name) => { handleCardClick(link, name) }}
-          cards={cards}
-          handleCardLikeStatus={(card) => handleCardLikeStatus(card)}
-        />
 
-        {/* Avatar Popup JSX */}
-        <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
+          {/* Avatar Popup JSX */}
+          <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
 
-        <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
+          <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
 
-        {/* AddCard Popup JSX */}
-        <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
+          {/* AddCard Popup JSX */}
+          <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
 
-        {/* Delete Popup JSX */}
-        <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
+          {/* Delete Popup JSX */}
+          <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
 
-        {/* Image Popup JSX */}
-        <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
+          {/* Image Popup JSX */}
+          <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
 
-        {/* Registration Result Popup JSX */}
-        <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} />
+          {/* Registration Result Popup JSX */}
+          <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} valid={isSuccessful} />
 
-        <Footer />
-      </div>
-    </CurrentUserContext.Provider>
-  );
-}
+          <Footer />
+        </div>
+      </CurrentUserContext.Provider >
+    );
+  }
 
-export default App;
+  export default App;
