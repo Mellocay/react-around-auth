@@ -19,7 +19,7 @@ export default function Register (props) {
 
   return (
     <div className="form">
-      <form onSubmit={handleSubmit} className="form__container">
+      <form action="#" onSubmit={handleSubmit} className="form__container">
         <h2 className="form__title">Sign up</h2>
         <input required className="form__input" id="email" name="email" type="email" value={email} placeholder="email" onChange={e => setEmail(e.target.value)} />
         <input required className="form__input" id="password" placeholder="password" name="password" type="password" value={password} onChange={e => setPassword(e.target.value)} />

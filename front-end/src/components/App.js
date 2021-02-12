@@ -46,6 +46,13 @@ function App() {
       .catch(err => console.log(err));
   }, []);
 
+  const history = useHistory();
+  const [token, setToken] = React.useState(false);
+
+  React.useEffect(() => {
+    handleCheckToken();
+    history.push('/');
+  }, [history, token]);
 
   // set states for Popups
   const [isEditAvatarOpen, setIsEditAvatarOpen] = React.useState(false);
@@ -147,32 +154,16 @@ function App() {
 
   // states for Registration and Login
   const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [message, setMessage] = React.useState('');
+  // const [password, setPassword] = React.useState('');
+  // const [message, setMessage] = React.useState('');
 
   const [loggedIn, setLoggedIn] = React.useState(false);
-  const [token, setToken] = React.useState(false);
-  // let jwt = localStorage.getItem('jwt');
 
-  const history = useHistory();
-
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setMessage('');
-  }
-
-  React.useEffect(() => {
-    let jwt = localStorage.getItem('jwt');
-    if (jwt) {
-      auth.getContent(jwt)
-        .then((res) => {
-          setEmail(res.email);
-          setLoggedIn(true);
-          history.push('/');
-        })
-    }
-  }, [history]);
+  // const resetForm = () => {
+  //   setEmail('');
+  //   setPassword('');
+  //   setMessage('');
+  // }
 
   function handleRegistration(email, password) {
     auth.register(email, password)
@@ -186,101 +177,106 @@ function App() {
           history.push('/signin');
         }
       })
-      .then(resetForm)
+      // .then(resetForm)
       .catch((err) => {
         console.log(err);
-        setIsSuccessful(false);
-        setIsResultPopupOpen(true);
       });
   }
 
   function handleCheckToken() {
-    const jwt = localStorage.getItem('jwt')
-    auth.getContent(jwt)
-      .then((res) => {
-        if (res.error) {
-          console.log(res.err);
-        }
-        setCurrentUser(res);
-        setEmail(res.email);
-        setLoggedIn(true);
-        setToken(jwt);
-        })
-    }
-
-    function handleLogin(email, password) {
-      auth.authorize(email, password)
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      auth.getContent(jwt)
         .then((res) => {
-          if (!res) {
-            console.log(res.error);
-            setIsSuccessful(false);
-            setIsResultPopupOpen(true);
+          if (res.err) {
+            console.log('Error!');
           }
-          if (res.error) {
-            console.log(res.error);
-            setIsSuccessful(false);
-            setIsResultPopupOpen(true);
-          }
-          handleCheckToken();
+          setEmail(res.email);
+          setLoggedIn(true);
+          setToken(jwt);
         })
-        .catch((err) => {
-          console.log(err);
-          setIsSuccessful(false);
-          setIsResultPopupOpen(true);
-        })
-    };
-
-    // app JSX
-    return (
-      <CurrentUserContext.Provider value={currentUser}>
-        <div className="page">
-          <Switch>
-            <ProtectedRoute exact path="/"
-              component={Main}
-              email={email}
-              loggedIn={loggedIn}
-              handleEditAvatarClick={handleEditAvatarClick}
-              handleEditProfileClick={handleEditProfileClick}
-              handleAddCardClick={handleAddCardClick}
-              // handleDeleteCardClick={handleDeleteCardClick}
-              handleDeleteCard={(card) => { handleDeleteCard(card) }}
-              handleCardClick={(link, name) => { handleCardClick(link, name) }}
-              cards={cards}
-              handleCardLikeStatus={(card) => handleCardLikeStatus(card)} />
-            <Route exact path="/signup">
-              <Header link="/signin" linkName="Sign in" />
-              <Register handleRegistration={handleRegistration} />
-            </Route>
-            <Route exact path="/signin">
-              <Header link="/signup" linkName="Sign up" />
-              <Login handleLogin={handleLogin} />
-            </Route>
-            <Route path="/*">
-              <Redirect to="/signin" />
-            </Route>
-          </Switch>
-
-          {/* Avatar Popup JSX */}
-          <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
-
-          <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
-
-          {/* AddCard Popup JSX */}
-          <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
-
-          {/* Delete Popup JSX */}
-          <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
-
-          {/* Image Popup JSX */}
-          <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
-
-          {/* Registration Result Popup JSX */}
-          <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} valid={isSuccessful} />
-
-          <Footer />
-        </div>
-      </CurrentUserContext.Provider >
-    );
+        .catch(err => console.log(err))
+    }
   }
 
-  export default App;
+  function handleSignout() {
+    localStorage.removeItem('jwt');
+    setLoggedIn(false);
+    setEmail('');
+    history.push('/signin');
+  }
+
+  function handleLogin(email, password) {
+    auth.authorize(email, password)
+      .then((res) => {
+        if (!res) {
+          console.log(res.error);
+          setIsSuccessful(false);
+          setIsResultPopupOpen(true);
+        } if (res.err) {
+          console.log(res.error);
+          setIsSuccessful(false);
+          setIsResultPopupOpen(true);
+        }
+        handleCheckToken();
+      })
+      .catch((err) => {
+        console.log(err);
+        setIsSuccessful(false);
+        setIsResultPopupOpen(true);
+      })
+  };
+
+  // app JSX
+  return (
+    <CurrentUserContext.Provider value={currentUser}>
+      <div className="page">
+        <Switch>
+          <Route path="/signup">
+            <Header link="/signin" linkName="Sign in" />
+            <Register handleRegistration={handleRegistration} />
+          </Route>
+          <Route path="/signin">
+            <Header link="/signup" linkName="Sign up" />
+            <Login handleLogin={handleLogin} />
+          </Route>
+          <ProtectedRoute path="/"
+            component={Main}
+            email={email}
+            loggedIn={loggedIn}
+            handleSignout={handleSignout}
+            onClose={handleClosePopups}
+            handleEditAvatarClick={handleEditAvatarClick}
+            handleEditProfileClick={handleEditProfileClick}
+            handleAddCardClick={handleAddCardClick}
+            // handleDeleteCardClick={handleDeleteCardClick}
+            handleDeleteCard={(card) => { handleDeleteCard(card) }}
+            handleCardClick={(link, name) => { handleCardClick(link, name) }}
+            cards={cards}
+            handleCardLikeStatus={(card) => handleCardLikeStatus(card)} />
+        </Switch>
+
+        {/* Avatar Popup JSX */}
+        <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
+
+        <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
+
+        {/* AddCard Popup JSX */}
+        <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
+
+        {/* Delete Popup JSX */}
+        <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
+
+        {/* Image Popup JSX */}
+        <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
+
+        {/* Registration Result Popup JSX */}
+        <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} valid={isSuccessful} />
+
+        <Footer />
+      </div>
+    </CurrentUserContext.Provider >
+  );
+}
+
+export default App;

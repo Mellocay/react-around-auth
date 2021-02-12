@@ -37,13 +37,14 @@ export const authorize = (email, password) => {
 };
 
 export const getContent = (token) => {
-  return fetch(`{$BASE_URL}/users/me`, {
+  return fetch(`${BASE_URL}/users/me`, {
     method: 'GET',
     headers: {
+      'Accept': 'application/json',
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     }
   })
-  .then((res) => {return res.json()})
-  .then((data) => {return data})
+  .then(res => res.ok ? res.json() : Promise.reject('Error' + res.statusText))
+  .then((res) => {return res});
 }
