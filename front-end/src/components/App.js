@@ -49,6 +49,22 @@ function App() {
   const history = useHistory();
   const [token, setToken] = React.useState(false);
 
+  function handleCheckToken() {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      auth.getContent(jwt)
+        .then((res) => {
+          if (res.err) {
+            console.log('Error!');
+          }
+          setEmail(res.email);
+          setLoggedIn(true);
+          setToken(jwt);
+        })
+        .catch(err => console.log(err))
+    }
+  }
+
   React.useEffect(() => {
     handleCheckToken();
     history.push('/');
@@ -181,22 +197,6 @@ function App() {
       .catch((err) => {
         console.log(err);
       });
-  }
-
-  function handleCheckToken() {
-    const jwt = localStorage.getItem('jwt');
-    if (jwt) {
-      auth.getContent(jwt)
-        .then((res) => {
-          if (res.err) {
-            console.log('Error!');
-          }
-          setEmail(res.email);
-          setLoggedIn(true);
-          setToken(jwt);
-        })
-        .catch(err => console.log(err))
-    }
   }
 
   function handleSignout() {
