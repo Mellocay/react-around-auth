@@ -8,7 +8,7 @@ function Header(props) {
       <img src={headerLogo} alt="Around the US Logo" className="header__logo" />
       <div className="header__content">
         <p className="header__text">{props.email}</p>
-        <Link className="header__link" to={props.link}>{props.linkName}</Link>
+        <Link className="header__link" to={props.link}><span onClick={props.onClick}>{props.linkName}</span></Link>
       </div>
     </header>
   );
