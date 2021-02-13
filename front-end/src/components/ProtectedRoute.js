@@ -8,7 +8,7 @@ const ProtectedRoute = ({ component: Component, ...props }) => {
       {
         () => props.loggedIn ?
           <>
-            <Header email={props.email} link='/signin' linkText='Logout' onClick={props.handleSignout} />
+            <Header email={props.email} link='/signin' linkName='Logout' onClick={props.onClick} />
             <Component {...props} />
           </>
           : <Redirect to='./signin' />

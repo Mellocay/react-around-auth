@@ -46,6 +46,7 @@ function App() {
 
   const history = useHistory();
   const [token, setToken] = React.useState('');
+  const [loggedIn, setLoggedIn] = React.useState(false);
 
   function handleCheckToken() {
     const jwt = localStorage.getItem('jwt');
@@ -55,9 +56,10 @@ function App() {
           if (res.err) {
             console.log('Error!');
           }
-          setEmail(res.email);
+          setEmail(res.data.email);
           setLoggedIn(true);
           setToken(jwt);
+          console.log(res);
         })
         .catch(err => console.log(err))
     }
@@ -171,8 +173,6 @@ function App() {
   // const [password, setPassword] = React.useState('');
   // const [message, setMessage] = React.useState('');
 
-  const [loggedIn, setLoggedIn] = React.useState(false);
-
   // const resetForm = () => {
   //   setEmail('');
   //   setPassword('');
@@ -242,7 +242,7 @@ function App() {
             component={Main}
             email={email}
             loggedIn={loggedIn}
-            handleSignout={handleSignout}
+            onClick={handleSignout}
             onClose={handleClosePopups}
             handleEditAvatarClick={handleEditAvatarClick}
             handleEditProfileClick={handleEditProfileClick}
