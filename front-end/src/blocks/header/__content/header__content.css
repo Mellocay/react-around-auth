@@ -1,0 +1,12 @@
+.header__content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 90px;
+  margin: 0 90px 0 auto;
+  position: relative;
+}
+
+.header__span {
+  width: 100px;
+}
