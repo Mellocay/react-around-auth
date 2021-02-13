@@ -170,19 +170,11 @@ function App() {
 
   // states for Registration and Login
   const [email, setEmail] = React.useState('');
-  // const [password, setPassword] = React.useState('');
-  // const [message, setMessage] = React.useState('');
-
-  // const resetForm = () => {
-  //   setEmail('');
-  //   setPassword('');
-  //   setMessage('');
-  // }
 
   function handleRegistration(email, password) {
     auth.register(email, password)
       .then((res) => {
-        if (!res || res.err) {
+        if (res.err || !res) {
           setIsSuccessful(false);
           setIsResultPopupOpen(true);
         } else {
@@ -191,11 +183,8 @@ function App() {
           history.push('/signin');
         }
       })
-      // .then(resetForm)
-      .catch((err) => {
-        console.log(err);
-      });
-  }
+      .catch(err => console.log(err))
+    }
 
   function handleSignout() {
     localStorage.removeItem('jwt');
@@ -252,25 +241,24 @@ function App() {
             handleCardClick={(link, name) => { handleCardClick(link, name) }}
             cards={cards}
             handleCardLikeStatus={(card) => handleCardLikeStatus(card)} />
-
-          {/* Avatar Popup JSX */}
-          <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
-
-          <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
-
-          {/* AddCard Popup JSX */}
-          <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
-
-          {/* Delete Popup JSX */}
-          <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
-
-          {/* Image Popup JSX */}
-          <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
-
-          {/* Registration Result Popup JSX */}
-          <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} valid={isSuccessful} />
-
         </Switch>
+        {/* Avatar Popup JSX */}
+        <EditAvatarPopup isOpen={isEditAvatarOpen} onClose={handleClosePopups} handleUpdateAvatar={handleUpdateAvatar} />
+
+        <EditProfilePopup isOpen={isEditProfileOpen} onClose={handleClosePopups} handleUpdateProfile={handleUpdateProfile} />
+
+        {/* AddCard Popup JSX */}
+        <AddCardPopup isOpen={isAddCardOpen} onClose={handleClosePopups} handleAddNewCard={handleAddNewCard} />
+
+        {/* Delete Popup JSX */}
+        <PopupWithForm name="delete" title="Are you sure?" buttonText="Yes" isOpen={isDeletePopupOpen} onClose={handleClosePopups} onClick={handleDeleteCard} />
+
+        {/* Image Popup JSX */}
+        <PopupWithImage link={selectedLink} name={selectedName} isOpen={isImagePopupOpen} onClose={handleClosePopups} />
+
+        {/* Registration Result Popup JSX */}
+        <ResultPopup name="result" title="You are registered!" isOpen={isResultPopupOpen} onClose={handleClosePopups} valid={isSuccessful} />
+
         <Footer />
       </div>
     </CurrentUserContext.Provider >
