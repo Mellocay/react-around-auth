@@ -1,5 +1,6 @@
 import React from 'react';
 import Card from './Card.js';
+import Header from './Header';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
 
 function Main(props) {
@@ -9,6 +10,7 @@ function Main(props) {
   // JSX for Main section
   return (
     <main className="main">
+      <Header email={props.email} link='/signin' linkName='Logout' onClick={props.onClick} />
   {/* Profile JSX */}
       <section className="profile">
         <div className="profile__image-section">
@@ -27,7 +29,8 @@ function Main(props) {
       <section className="card">
         <ul className="card__items">
           {props.cards.map((card, index) => {
-            return <Card 
+            return (
+            <Card 
               key={index}
               card={card}
               src={card.link}
@@ -39,6 +42,7 @@ function Main(props) {
               handleDeleteCard={(card) => {props.handleDeleteCard(card)}}
               handleCardClick={() => props.handleCardClick(card.link, card.name)}
               handleCardLikeStatus={(card) => {props.handleCardLikeStatus(card)}}/>
+            )
           })}
         </ul>
       </section>

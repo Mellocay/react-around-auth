@@ -8,7 +8,7 @@ import EditAvatarPopup from './EditAvatarPopup.js'
 import AddCardPopup from './AddCardPopup.js'
 import PopupWithImage from './PopupWithImage';
 import Footer from './Footer.js';
-import api from '../utils/Api.js';
+import api from '../utils/api.js';
 import Register from './Register.js';
 import Login from './Login.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
@@ -45,7 +45,6 @@ function App() {
   const [cards, setCards] = React.useState([]);
 
   const history = useHistory();
-  const [token, setToken] = React.useState('');
   const [loggedIn, setLoggedIn] = React.useState(false);
 
   function handleCheckToken() {
@@ -56,9 +55,9 @@ function App() {
           if (res.err) {
             console.log('Error!');
           }
+          history.push('/');
           setEmail(res.data.email);
           setLoggedIn(true);
-          setToken(jwt);
           console.log(res);
         })
         .catch(err => console.log(err))
@@ -67,8 +66,10 @@ function App() {
 
   React.useEffect(() => {
     handleCheckToken();
-    history.push('/');
-  }, [history, token]);
+    if (loggedIn) {
+      history.push('/');
+    }
+  }, [history]);
 
   // set states for Popups
   const [isEditAvatarOpen, setIsEditAvatarOpen] = React.useState(false);
@@ -163,7 +164,7 @@ function App() {
 
   function handleAddNewCard(cardInfo) {
     api.addCard(cardInfo).then(newCard =>
-      setCards([...cards, newCard]))
+      setCards([newCard, ...cards]))
       .then(() => { handleClosePopups() })
       .catch(err => console.log(err));
   }
@@ -184,7 +185,7 @@ function App() {
         }
       })
       .catch(err => console.log(err))
-    }
+  }
 
   function handleSignout() {
     localStorage.removeItem('jwt');

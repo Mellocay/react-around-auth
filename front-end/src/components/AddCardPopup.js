@@ -20,6 +20,8 @@ export default function AddCardPopup(props) {
       name: cardName,
       link: cardLink
     });
+    setCardName('');
+    setCardLink('');
   }
 
   return(
